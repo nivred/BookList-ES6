@@ -54,6 +54,53 @@ class UI {
     }
 }
 
+// Local Storage Class
+class Storage {
+    static getBooks() {
+        let books;
+        if(localStorage.getItem('books') === null) {
+            books = [];
+        } else {
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+        return books;
+    }
+
+    static displayBooks() {
+        const books = Storage.getBooks();
+
+        books.forEach(function(book) {
+            const ui = new UI;
+
+            // Add book to UI
+            ui.addBookToList(book);
+        });
+    }
+
+    static addBook(book) {
+        const books = Storage.getBooks();
+
+        books.push(book);
+
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+
+    static removeBook(isbn) {
+        const books = Storage.getBooks();
+
+        books.forEach(function(book, index) {
+            if(book.isbn === isbn) {
+                books.splice(index, 1);
+            }
+        });
+        
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+}
+
+// DOM Load Event
+document.addEventListener('DOMContentLoaded', Storage.displayBooks);
+
 // Event Listeners for book added
 document.querySelector('#book-form').addEventListener('submit', function(e) {
     // Get form values
@@ -74,8 +121,13 @@ document.querySelector('#book-form').addEventListener('submit', function(e) {
     } else {
         // Add book to list
         ui.addBookToList(book);
+
+        // Add to local storage
+        Storage.addBook(book);
+
         // Show success
         ui.showAlert('Book Added!', 'success');
+
         // Clear fields
         ui.clearFields();
     }
@@ -87,8 +139,13 @@ document.querySelector('#book-form').addEventListener('submit', function(e) {
 document.querySelector('#book-list').addEventListener('click', function(e) {
     // Instantiate UI
     const ui = new UI();
+    
     // Delete book
     ui.deleteBook(e.target);
+
+    // Remove from local storage
+    Storage.removeBook(e.target.parentElement.previousElementSibling.textContent);
+
     // Show alert
     ui.showAlert('Book Removed!', 'success');
     
